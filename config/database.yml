@@ -1,11 +1,11 @@
 development:
   adapter: postgresql
-  database:
+  database: safety_dance_development
   encoding: unicode
   host: /private/tmp
 
 production:
   adapter: postgresql
-  database:
+  database: safety_dance_production
   encoding: unicode
   host: /private/tmp

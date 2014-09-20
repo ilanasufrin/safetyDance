@@ -8,6 +8,7 @@ gem 'sinatra-activerecord'
 gem 'pg'
 gem 'rake'
 gem 'json'
+gem 'postgres-copy'
 
 group :development do
   gem 'pry'
