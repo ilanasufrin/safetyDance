@@ -135,14 +135,16 @@
 
         //Adds a barrier
         function addBarrier(evt) {
+          var xx = new esri.Graphic(
+            evt.mapPoint,
+            barrierSymbol
+          )
           routeParams.barriers.features.push(
             map.graphics.add(
-              new esri.Graphic(
-                evt.mapPoint,
-                barrierSymbol
-              )
+              xx
             )
           );
+          console.log(xx);
         }
 
         //Stops listening for click events to add barriers and stops (if they've already been wired)
