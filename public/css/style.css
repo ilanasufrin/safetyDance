@@ -1,0 +1,24 @@
+body {
+	font-family: "Lato", Helvetica, Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+}
+.hide {
+	display: none;
+}
+#map {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+.userInput {
+	position: absolute;
+	right: 0;
+	width: 50%;
+	z-index: 10;
+	background-color: #ffffff;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	padding: 20px;
+}
