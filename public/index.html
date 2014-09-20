@@ -2,14 +2,14 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <!--The viewport meta tag is used to improve the presentation and behavior of the samples 
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples
       on iOS devices-->
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
     <title>Multiple Routes</title>
 
     <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dijit/themes/claro/claro.css">
     <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/esri/css/esri.css">
-    
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/vendor/flat-ui.css">
@@ -25,18 +25,20 @@
         "esri/urlUtils",
         "esri/config",
         "esri/map",
-        "esri/graphic",            
-        "esri/tasks/RouteTask",            
+        "esri/geometry/Point",
+        "esri/graphic",
+        "esri/tasks/RouteTask",
         "esri/tasks/RouteParameters",
 
-        "esri/tasks/FeatureSet",            
+        "esri/tasks/FeatureSet",
         "esri/symbols/SimpleMarkerSymbol",
-        "esri/symbols/SimpleLineSymbol",          
+        "esri/symbols/SimpleLineSymbol",
 
         "esri/Color",
         "dojo/_base/array",
         "dojo/on",
         "dojo/dom",
+        "dojo/request/xhr",
         "dijit/registry",
 
         "dijit/layout/BorderContainer",
@@ -44,22 +46,18 @@
         "dijit/form/HorizontalSlider",
         "dijit/form/HorizontalRuleLabels"
       ], function (
-        urlUtils, esriConfig, Map, Graphic, RouteTask, RouteParameters,
-        FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,           
-        Color, array, on, dom, registry
+        urlUtils, esriConfig, Map, Point, Graphic, RouteTask, RouteParameters,
+        FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
+        Color, array, on, dom, xhr, registry
       ) {
         var map, routeTask, routeParams, routes = [];
         var stopSymbol, barrierSymbol, routeSymbols;
         var mapOnClick_addStops_connect, mapOnClick_addBarriers_connect;
 
-       /* urlUtils.addProxyRule({
-          urlPrefix: "route.arcgis.com",  
-          proxyUrl: "/sproxy"
-        });*/
-        
         map = new Map("map", {
           basemap: "streets",
-          center: [-122.416, 37.802],
+          // center: [-73.935242, 40.730610],
+          center: [-73.9910079091617, 40.5752481881493],
           zoom: 15
         });
 
@@ -68,10 +66,10 @@
         routeParams.stops = new FeatureSet();
         routeParams.barriers = new FeatureSet();
         routeParams.outSpatialReference = {"wkid":102100};
-        
+
         routeTask.on("solve-complete", showRoute);
         routeTask.on("error", errorHandler);
-                
+
         stopSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_CROSS).setSize(15);
         stopSymbol.outline.setWidth(3);
 
@@ -83,15 +81,15 @@
           "Route 2": new SimpleLineSymbol().setColor(new Color([0,255,0,0.5])).setWidth(5),
           "Route 3": new SimpleLineSymbol().setColor(new Color([255,0,255,0.5])).setWidth(5)
         };
-                        
+
         //button click event listeners can't be added directly in HTML when the code is wrapped in an AMD callback
         on(dom.byId("addStopsBtn"), "click", addStops);
         on(dom.byId("clearStopsBtn"), "click", clearStops);
         on(dom.byId("addBarriersBtn"), "click", addBarriers);
         on(dom.byId("clearBarriersBtn"), "click", clearBarriers);
         on(dom.byId("solveRoutesBtn"), "click", solveRoute);
-        on(dom.byId("clearRoutesBtn"), "click", clearRoutes);        
-      
+        on(dom.byId("clearRoutesBtn"), "click", clearRoutes);
+
         //Begins listening for click events to add stops
         function addStops() {
           removeEventHandlers();
@@ -110,7 +108,7 @@
         function addStop(evt) {
           routeParams.stops.features.push(
             map.graphics.add(
-              new esri.Graphic(
+              new Graphic(
                 evt.mapPoint,
                 stopSymbol,
                 { RouteName:dom.byId("routeName").value }
@@ -145,8 +143,33 @@
           );
         }
 
+        function getPointsInRect(p1, p2) {
+          var x1 = 40.55,
+              y1 = -74,
+              x2 = 40.6,
+              y2 = -73.95;
+          xhr(["/crimes", x1, y1, x2, y2].join('/'), {
+            handleAs: "json"
+          }).then(function(data){
+            data.forEach(function(pt) {
+              addPointAsBarrier(pt);
+            });
+          })
+        }
+        window.getPointsInRect = getPointsInRect;
+
+        // Add barrier from json
+        function addPointAsBarrier(p) {
+          var point = new Point(p.longitude, p.latitude);
+          routeParams.barriers.features.push(
+            map.graphics.add(
+              new Graphic(point, barrierSymbol)
+            )
+          );
+        }
+
         //Stops listening for click events to add barriers and stops (if they've already been wired)
-        function removeEventHandlers() {        
+        function removeEventHandlers() {
           if (mapOnClick_addStops_connect) {
             mapOnClick_addStops_connect.remove();
           }
@@ -197,23 +220,25 @@
       });
     </script>
 
+    <script type="text/javascript" src="js/main.js"></script>
+
   </head>
   <body class="claro">
     <div class="userInput">
       <div class="hide">
-        Select route name: 
+        Select route name:
         <select id="routeName">
         <option value="Route 1">Route 1</option>
         <option value="Route 2">Route 2</option>
         <option value="Route 3">Route 3</option>
-        </select> to 
+        </select> to
         <button id="addStopsBtn">Add Stops</button>
         <button id="clearStopsBtn">Clear Stops</button>
         <button id="addBarriersBtn">Add Barriers</button>
         <button id="clearBarriersBtn">Clear Barriers</button>
         <button id="solveRoutesBtn">Solve Routes</button>
         <button id="clearRoutesBtn">Clear Routes</button>
-        
+
       </div>
       <input type="text" placeholder="..." class="form-control flat" />
       <input type="text" placeholder="..." class="form-control flat" />
