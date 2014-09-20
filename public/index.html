@@ -215,8 +215,15 @@
         <button id="clearRoutesBtn">Clear Routes</button>
         
       </div>
-      <input type="text" placeholder="..." class="form-control flat" />
-      <input type="text" placeholder="..." class="form-control flat" />
+      <form role="search" class="navbar-form navbar-left">
+        <div class="form-group">
+          <input type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
+          <input type="text" class="form-control flat" placeholder="Choose destination...">
+        </div>
+        <button class="btn btn-hg btn-primary">
+          Search
+        </button>
+      </form>
     </div>
     <div id="map"></div>
   </body>
