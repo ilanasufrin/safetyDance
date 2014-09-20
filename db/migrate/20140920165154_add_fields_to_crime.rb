@@ -1,6 +1,6 @@
-class Crime < ActiveRecord::Base
+class AddFieldsToCrime < ActiveRecord::Migration
+  def change
 
-   def change
     create_table :crimes do |t|
       t.float :longitude
       t.float :latitude
@@ -13,8 +13,7 @@ class Crime < ActiveRecord::Base
  
       t.timestamps
     end
-    add_index :latitude, :longitude, :type
+    
+
   end
-
-
 end
