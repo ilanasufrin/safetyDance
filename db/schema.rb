@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 20140920165154) do
     t.integer  "x"
     t.integer  "y"
     t.float    "TOT"
-    t.string   "type"
+    t.string   "crimeType"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

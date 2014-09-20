@@ -9,7 +9,7 @@ class AddFieldsToCrime < ActiveRecord::Migration
       t.integer :x
       t.integer :y
       t.float :TOT
-      t.string :type
+      t.string :crimeType
  
       t.timestamps
     end
