@@ -5,9 +5,11 @@ class Crime < ActiveRecord::Base
   }
 
   def self.in_rect p1, p2
+    north, south = [p1[:lat], p2[:lat]].min, [p1[:lat], p2[:lat]].max
+    east, west = [p1[:lng], p2[:lng]].min, [p1[:lng], p2[:lng]].max
     self
-      .where("crimes.latitude BETWEEN ? AND ?", p1[:lat], p2[:lat])
-      .where("crimes.longitude BETWEEN ? AND ?", p1[:lng], p2[:lng])
+      .where("crimes.latitude BETWEEN ? AND ?", north, south)
+      .where("crimes.longitude BETWEEN ? AND ?", east, west)
   end
 
   def as_json opts = {}

@@ -197,11 +197,13 @@
         }
 
         function getPointsInRect(p1, p2) {
-          var x1 = 40.55,
-              y1 = -74,
-              x2 = 40.6,
-              y2 = -73.95;
-          xhr(["http://walk.ngrok.com/crimes", x1, y1, x2, y2].join('/'), {
+          p1 = p1 || new Point(-74, 40.55);
+          p2 = p2 || new Point(-73.95, 40.6);
+          xhr(["http://walk.ngrok.com/crimes",
+                p1.getLatitude(),
+                p1.getLongitude(),
+                p2.getLatitude(),
+                p2.getLongitude()].join('/'), {
             handleAs: "json"
           }).then(function(data){
             data.forEach(function(p) {
