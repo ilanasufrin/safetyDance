@@ -13,12 +13,27 @@ body {
 }
 .userInput {
 	position: absolute;
-	right: 0;
-	width: 50%;
+	right: 20px;
+	top: 20px;
+	width: 342px;
 	z-index: 10;
 	background-color: #ffffff;
 	-webkit-box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
-	padding: 20px;
+	padding: 15px;
+}
+#search2 {
+	margin-top: 10px;
+}
+.form-group {
+	float: left;
+	margin-bottom: 0px !important;
+}
+#searchButton {
+	width: 70px;
+	height: 70px;
+	font-size: 16px;
+	padding: 0px;
+	float: right;
 }
