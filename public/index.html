@@ -102,6 +102,7 @@
 
 
         function addPointAsStop(point) {
+          clearRouteAndMarkers();
           point.graphic = new Graphic(point, stopSymbol,
             // { RouteName:dom.byId("routeName").value }
             { RouteName:'Route 1' }
@@ -279,6 +280,7 @@
         window.getPointsInRect = getPointsInRect;
 
 
+        var warnings = [];
         function getWarningPointsInRect(p1, p2) {
           p1 = p1 || new Point(-74, 40.55);
           p2 = p2 || new Point(-73.95, 40.6);
@@ -306,9 +308,9 @@
         }
 
         function addPointAsWarning(point) {
-            map.graphics.add(
-              new Graphic(point, warningSymbol)
-            )
+          var graphic = new Graphic(point, warningSymbol)
+          warnings.push(graphic);
+            map.graphics.add(graphic)
         }
 
         //Stops listening for click events to add barriers and stops (if they've already been wired)
@@ -343,6 +345,14 @@
         function clearRouteAndMarkers() {
           clearRoutes();
           clearBarriers();
+          clearWarnings();
+        }
+
+        function clearWarnings() {
+          for(var i=warnings.length-1; i>=0; i--) {
+            map.graphics.remove(warnings.splice(i, 1)[0]);
+          }
+          warnings = [];
         }
 
         //Draws the resulting routes on the map
