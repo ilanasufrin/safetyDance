@@ -1,4 +1,3 @@
-- Label the search box with "from" and "to"
 
 - Add a "search again" button/feature to clear the map
 
