@@ -13,4 +13,6 @@ end
 
 mount_controllers_as_middleware
 
+use Rack::Static, root: 'public', urls: ['/']
+
 run ApplicationController

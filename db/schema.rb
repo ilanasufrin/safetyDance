@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140920165154) do
+ActiveRecord::Schema.define(version: 20140921001830) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,5 +28,29 @@ ActiveRecord::Schema.define(version: 20140920165154) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "crimes", ["crimeType"], name: "index_crimes_on_crimeType", using: :btree
+  add_index "crimes", ["latitude"], name: "index_crimes_on_latitude", using: :btree
+  add_index "crimes", ["longitude"], name: "index_crimes_on_longitude", using: :btree
+
+  create_table "interest_points", force: true do |t|
+    t.float    "latitude",   null: false
+    t.float    "longitude",  null: false
+    t.integer  "user_id",    null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "interest_points", ["latitude"], name: "index_interest_points_on_latitude", using: :btree
+  add_index "interest_points", ["longitude"], name: "index_interest_points_on_longitude", using: :btree
+  add_index "interest_points", ["user_id"], name: "index_interest_points_on_user_id", using: :btree
+
+  create_table "users", force: true do |t|
+    t.string   "email",      null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "users", ["email"], name: "index_users_on_email", using: :btree
 
 end

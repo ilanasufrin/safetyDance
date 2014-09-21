@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <!--The viewport meta tag is used to improve the presentation and behavior of the samples
+      on iOS devices-->
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Multiple Routes</title>
+
+    <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/esri/css/esri.css">
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/vendor/flat-ui.css">
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Latest compiled and minified JavaScript 
+    <script src="js/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="js/flat-ui.js"></script>-->
+    <script src="http://js.arcgis.com/3.10/"></script>
+    <script>
+      require([
+        "esri/urlUtils",
+        "esri/config",
+        "esri/map",
+        "esri/dijit/Geocoder",
+        "esri/geometry/Point",
+        "esri/graphic",
+        "esri/tasks/RouteTask",
+        "esri/tasks/RouteParameters",
+
+        "esri/tasks/FeatureSet",
+        "esri/symbols/SimpleMarkerSymbol",
+        "esri/symbols/SimpleLineSymbol",
+
+        "esri/Color",
+        "dojo/_base/array",
+        "dojo/on",
+        "dojo/dom",
+        "dojo/dom-class",
+        "dojo/request/xhr",
+        "dijit/registry",
+
+        "dijit/layout/BorderContainer",
+        "dijit/layout/ContentPane",
+        "dijit/form/HorizontalSlider",
+        "dijit/form/HorizontalRuleLabels"
+      ], function (
+        urlUtils, esriConfig, Map, Geocoder, Point, Graphic, RouteTask, RouteParameters,
+        FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
+        Color, array, on, dom, domClass, xhr, registry
+      ) {
+        var map, routeTask, routeParams, routes = [];
+        var stopSymbol, barrierSymbol, routeSymbols, warningSymbol;
+        var mapOnClick_addStops_connect, mapOnClick_addBarriers_connect;
+
+        esri.config.defaults.io.corsEnabledServers.push("route.arcgis.com");
+
+        map = new Map("map", {
+          basemap: "streets",
+          center: [-73.95, 40.75],
+          zoom: 12
+        });
+
+        var emailField = dom.byId('emailField'),
+            emailWrapper = dom.byId('emailWrapper');
+        function showEmailWrapper() {
+          domClass.remove(emailWrapper, "hide");
+        }
+        function hideEmailWrapper() {
+          domClass.add(emailWrapper, "hide");
+        }
+
+        function sendSubscription(email, p1, p2) {
+          var formData = {
+            email: email,
+            "p1[latitude]": p1.getLatitude(),
+            "p1[longitude]": p2.getLongitude(),
+            "p2[latitude]": p2.getLatitude(),
+            "p2[longitude]": p2.getLongitude()
+          }
+          console.log(formData)
+          xhr("/users", {
+            method: "POST",
+            data: formData
+          }).then(function(data) {
+            hideEmailWrapper();
+          });
+        }
+
+        function subscribe() {
+          sendSubscription(
+            emailField.value,
+            endpointStart,
+            endpointEnd
+          );
+        }
+
+        on(dom.byId("subscribeSubmit"), "click", subscribe);
+
+
+        function addPointAsStop(point) {
+          point.graphic = new Graphic(point, stopSymbol,
+            // { RouteName:dom.byId("routeName").value }
+            { RouteName:'Route 1' }
+          );
+          routeParams.stops.features.push(
+            map.graphics.add(point.graphic)
+          );
+        }
+
+        var endpointStart,
+            endpointEnd;
+
+        var geocoder1 = new Geocoder({
+          autoComplete: true,
+          map: map,
+        }, dom.byId("search1"));
+        geocoder1.startup();
+
+        geocoder1.on("select", function(evt) {
+          removeStop(endpointStart);
+          endpointStart = evt.result.feature.geometry;
+          showLocation(evt, endpointStart);
+        });
+
+        var geocoder2 = new Geocoder({
+          autoComplete: true,
+          map: map,
+        }, dom.byId("search2"));
+        geocoder2.startup();
+
+        geocoder2.on("select", function(evt) {
+          removeStop(endpointEnd);
+          endpointEnd = evt.result.feature.geometry;
+          showLocation(evt, endpointEnd);
+        });
+
+        function removeStop(point) {
+          var i;
+          if (point) {
+            map.graphics.remove(point.graphic);
+            i = routeParams.stops.features.indexOf(point);
+            routeParams.stops.features.splice(i, 1);
+          }
+        }
+
+        function getStops() {
+          return routeParams.stops.features;
+        }
+        window.getStops = getStops;
+
+        function showLocation(evt, point) {
+          addPointAsStop(point);
+
+          map.infoWindow.setTitle("Search Result");
+          map.infoWindow.setContent(evt.result.name);
+          map.infoWindow.show(evt.result.feature.geometry);
+        };
+
+        routeTask = new RouteTask("http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
+        routeParams = new RouteParameters();
+        routeParams.stops = new FeatureSet();
+        routeParams.barriers = new FeatureSet();
+        routeParams.outSpatialReference = {"wkid":102100};
+
+        routeTask.on("solve-complete", showRoute);
+        routeTask.on("error", errorHandler);
+
+        stopSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            // .setColor(new Color([46, 204, 113, 1]));
+            .setColor(new Color([70, 201, 175, 1]));
+
+        warningSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            // .setColor(new Color([46, 204, 113, 1]));
+            .setColor(new Color([244, 210, 19, 0.3]));
+
+        // barrierSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_X).setSize(10);
+
+        barrierSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            .setColor(new Color([231, 76, 60, 0.3]));
+
+        routeSymbols = {
+          "Route 1": new SimpleLineSymbol().setColor(new Color([0,0,255,0.5])).setWidth(5),
+          "Route 2": new SimpleLineSymbol().setColor(new Color([0,255,0,0.5])).setWidth(5),
+          "Route 3": new SimpleLineSymbol().setColor(new Color([255,0,255,0.5])).setWidth(5)
+        };
+
+        //button click event listeners can't be added directly in HTML when the code is wrapped in an AMD callback
+        on(dom.byId("addStopsBtn"), "click", addStops);
+        on(dom.byId("clearStopsBtn"), "click", clearStops);
+        on(dom.byId("addBarriersBtn"), "click", addBarriers);
+        on(dom.byId("clearBarriersBtn"), "click", clearBarriers);
+        // on(dom.byId("solveRoutesBtn"), "click", solveRoute);
+        on(dom.byId("searchButton"), "click", solveRoute);
+        on(dom.byId("clearRoutesBtn"), "click", clearRoutes);
+
+        //Begins listening for click events to add stops
+        function addStops() {
+          removeEventHandlers();
+          mapOnClick_addStops_connect = map.on("click", addStop);
+        }
+
+        //Clears all stops
+        function clearStops() {
+          removeEventHandlers();
+          for (var i=routeParams.stops.features.length-1; i>=0; i--) {
+            map.graphics.remove(routeParams.stops.features.splice(i, 1)[0]);
+          }
+        }
+
+        //Adds a stop. The stop is associated with the route currently displayed in the dropdown
+        function addStop(evt) {
+          routeParams.stops.features.push(
+            map.graphics.add(
+              new Graphic(
+                evt.mapPoint,
+                stopSymbol,
+                { RouteName:dom.byId("routeName").value }
+              )
+            )
+          );
+        }
+
+        //Begins listening for click events to add barriers
+        function addBarriers() {
+          removeEventHandlers();
+          mapOnClick_addBarriers_connect = on(map, "click", addBarrier);
+        }
+
+        //Clears all barriers
+        function clearBarriers() {
+          removeEventHandlers();
+          for (var i=routeParams.barriers.features.length-1; i>=0; i--) {
+            map.graphics.remove(routeParams.barriers.features.splice(i, 1)[0]);
+          }
+        }
+
+        //Adds a barrier
+        function addBarrier(evt) {
+          routeParams.barriers.features.push(
+            map.graphics.add(
+              new esri.Graphic(
+                evt.mapPoint,
+                barrierSymbol
+              )
+            )
+          );
+        }
+
+        function getPointsInRect(p1, p2, cb) {
+          p1 = p1 || new Point(-74, 40.55);
+          p2 = p2 || new Point(-73.95, 40.6);
+          xhr(["http://walk.ngrok.com/crimes",
+                p1.getLatitude(),
+                p1.getLongitude(),
+                p2.getLatitude(),
+                p2.getLongitude()].join('/'), {
+            handleAs: "json"
+          }).then(function(data){
+            data.forEach(function(p) {
+              addPointAsBarrier(new Point(p.longitude, p.latitude));
+            });
+            showEmailWrapper();
+            cb();
+          })
+        }
+        window.getPointsInRect = getPointsInRect;
+
+
+        function getWarningPointsInRect(p1, p2) {
+          p1 = p1 || new Point(-74, 40.55);
+          p2 = p2 || new Point(-73.95, 40.6);
+          xhr(["http://walk.ngrok.com/crimes",
+                p1.getLatitude(),
+                p1.getLongitude(),
+                p2.getLatitude(),
+                p2.getLongitude()].join('/')+'?all=true', {
+            handleAs: "json"
+          }).then(function(data){
+            data.forEach(function(p) {
+              addPointAsWarning(new Point(p.longitude, p.latitude));
+            });
+          })
+        }
+        window.getWarningPointsInRect = getWarningPointsInRect;
+
+        // Add barrier from point
+        function addPointAsBarrier(point) {
+          routeParams.barriers.features.push(
+            map.graphics.add(
+              new Graphic(point, barrierSymbol)
+            )
+          );
+        }
+
+        function addPointAsWarning(point) {
+            map.graphics.add(
+              new Graphic(point, warningSymbol)
+            )
+        }
+
+        //Stops listening for click events to add barriers and stops (if they've already been wired)
+        function removeEventHandlers() {
+          if (mapOnClick_addStops_connect) {
+            mapOnClick_addStops_connect.remove();
+          }
+          if (mapOnClick_addBarriers_connect) {
+            mapOnClick_addBarriers_connect.remove();
+          }
+        }
+
+        //Solves the routes. Any errors will trigger the errorHandler function.
+        function solveRoute() {
+          removeEventHandlers();
+          getPointsInRect(endpointStart, endpointEnd, function() {
+            console.info("Routes. Yeah.");
+            console.log(routeParams.barriers.features);
+            routeTask.solve(routeParams);
+          });
+          getWarningPointsInRect(endpointStart, endpointEnd);
+        }
+
+        //Clears all routes
+        function clearRoutes() {
+          for (var i=routes.length-1; i>=0; i--) {
+            map.graphics.remove(routes.splice(i, 1)[0]);
+          }
+          routes = [];
+        }
+
+        function clearRouteAndMarkers() {
+          clearRoutes();
+          clearBarriers();
+        }
+
+        //Draws the resulting routes on the map
+        function showRoute(evt) {
+          clearRoutes();
+
+          array.forEach(evt.result.routeResults, function(routeResult, i) {
+            routes.push(
+              map.graphics.add(
+                routeResult.route.setSymbol(routeSymbols[routeResult.routeName])
+              )
+            );
+          });
+
+          var msgs = ["Server messages:"];
+          array.forEach(evt.result.messages, function(message) {
+            msgs.push(message.type + " : " + message.description);
+          });
+          if (msgs.length > 1) {
+            alert(msgs.join("\n - "));
+          }
+        }
+
+        //Reports any errors that occurred during the solve
+        function errorHandler(err) {
+          alert("An error occured\n" + err.message + "\n" + err.details.join("\n"));
+        }
+      });
+    </script>
+
+    <script type="text/javascript" src="js/main.js"></script>
+
+  </head>
+  <body class="claro">
+    <div class="userInput">
+      <div class="hide">
+        Select route name:
+        <select id="routeName">
+        <option value="Route 1">Route 1</option>
+        <option value="Route 2">Route 2</option>
+        <option value="Route 3">Route 3</option>
+        </select> to
+        <button id="addStopsBtn">Add Stops</button>
+        <button id="clearStopsBtn">Clear Stops</button>
+        <button id="addBarriersBtn">Add Barriers</button>
+        <button id="clearBarriersBtn">Clear Barriers</button>
+        <button id="solveRoutesBtn">Solve Routes</button>
+        <button id="clearRoutesBtn">Clear Routes</button>
+
+      </div>
+        <div class="form-group">
+          <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
+          <input id="search2" type="text" class="form-control flat" placeholder="Choose destination...">
+        </div>
+        <button id="searchButton" class="btn btn-hg btn-primary btn-embossed fui-search">
+          
+        </button>
+        <div id="emailWrapper" class="hide email-wrapper">
+          <input id="emailField" type="text" class="form-control" placeholder="email address">
+          <button id="subscribeSubmit" class="btn btn-hg btn-primary btn-embossed fui-volume">
+          </button>
+        </div>
+    </div>
+    <div id="map"></div>
+  </body>
+</html>

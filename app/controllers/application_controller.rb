@@ -9,4 +9,8 @@ class ApplicationController < Sinatra::Base
     register Sinatra::Reloader
   end
 
+  get '/?' do
+    send_file "./public/index.html"
+  end
+
 end
