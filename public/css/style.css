@@ -20,6 +20,7 @@ h4 {
 	padding: 5px 10px;
 	margin: 0 0 10px 0;
 	border-radius: 6px;
+	word-spacing: 4px;
 }
 .userInput {
 	position: absolute;
@@ -47,7 +48,7 @@ h4 {
 	float: right;
 }
 .email-wrapper {
-	padding-top: 15px;
+	padding-top: 20px;
 	clear: both;
 }
 .email-wrapper input {
