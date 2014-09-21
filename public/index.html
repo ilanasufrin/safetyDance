@@ -66,15 +66,17 @@
 
 
         function addPointAsStop(point) {
+          point.graphic = new Graphic(point, stopSymbol,
+            // { RouteName:dom.byId("routeName").value }
+            { RouteName:'Route 1' }
+          );
           routeParams.stops.features.push(
-            map.graphics.add(
-              new Graphic(point, stopSymbol,
-                // { RouteName:dom.byId("routeName").value }
-                { RouteName:'Route 1' }
-              )
-            )
+            map.graphics.add(point.graphic)
           );
         }
+
+        var endpointStart,
+            endpointEnd;
 
         var geocoder1 = new Geocoder({
           autoComplete: true,
@@ -82,7 +84,11 @@
         }, dom.byId("search1"));
         geocoder1.startup();
 
-        geocoder1.on("select", showLocation);
+        geocoder1.on("select", function(evt) {
+          removeStop(endpointStart);
+          endpointStart = evt.result.feature.geometry;
+          showLocation(evt, endpointStart);
+        });
 
         var geocoder2 = new Geocoder({
           autoComplete: true,
@@ -90,20 +96,28 @@
         }, dom.byId("search2"));
         geocoder2.startup();
 
-        geocoder2.on("select", showLocation);
+        geocoder2.on("select", function(evt) {
+          removeStop(endpointEnd);
+          endpointEnd = evt.result.feature.geometry;
+          showLocation(evt, endpointEnd);
+        });
 
-        function showLocation(evt) {
-          window.endpoints = window.endpoints || [];
-          // map.graphics.clear();
-          var point = evt.result.feature.geometry;
-          window.endpoints.push(point);
+        function removeStop(point) {
+          var i;
+          if (point) {
+            map.graphics.remove(point.graphic);
+            i = routeParams.stops.features.indexOf(point);
+            routeParams.stops.features.splice(i, 1);
+          }
+        }
+
+        function getStops() {
+          return routeParams.stops.features;
+        }
+        window.getStops = getStops;
+
+        function showLocation(evt, point) {
           addPointAsStop(point);
-          var symbol = new SimpleMarkerSymbol()
-            .setStyle("circle")
-            .setOutline(0)
-            .setColor(new Color([66, 199, 173, 1]));
-          var graphic = new Graphic(point, symbol);
-          // map.graphics.add(graphic);
 
           map.infoWindow.setTitle("Search Result");
           map.infoWindow.setContent(evt.result.name);
@@ -257,7 +271,7 @@
         //Solves the routes. Any errors will trigger the errorHandler function.
         function solveRoute() {
           removeEventHandlers();
-          getPointsInRect(window.endpoints[0], window.endpoints[1]);
+          getPointsInRect(endpointStart, endpointEnd);
           routeTask.solve(routeParams);
         }
 
