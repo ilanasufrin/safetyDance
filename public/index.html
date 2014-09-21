@@ -66,17 +66,14 @@
 
 
         function addPointAsStop(point) {
-          // var point = new Point(p.longitude, p.latitude);
-          console.log(dom.byId("routeName").value);
           routeParams.stops.features.push(
             map.graphics.add(
               new Graphic(point, stopSymbol,
                 // { RouteName:dom.byId("routeName").value }
-                { RouteName:'Route' }
+                { RouteName:'Route 1' }
               )
             )
           );
-          console.log(point);
         }
 
         var geocoder1 = new Geocoder({
@@ -96,10 +93,10 @@
         geocoder2.on("select", showLocation);
 
         function showLocation(evt) {
+          window.endpoints = window.endpoints || [];
           // map.graphics.clear();
           var point = evt.result.feature.geometry;
-          console.log(point.getLatitude(), point.getLongitude());
-          // addPointAsStop(point.getLatitude(), point.getLongitude());
+          window.endpoints.push(point);
           addPointAsStop(point);
           var symbol = new SimpleMarkerSymbol()
             .setStyle("circle")
@@ -138,10 +135,9 @@
         on(dom.byId("clearStopsBtn"), "click", clearStops);
         on(dom.byId("addBarriersBtn"), "click", addBarriers);
         on(dom.byId("clearBarriersBtn"), "click", clearBarriers);
-        on(dom.byId("solveRoutesBtn"), "click", solveRoute);
+        // on(dom.byId("solveRoutesBtn"), "click", solveRoute);
+        on(dom.byId("searchButton"), "click", solveRoute);
         on(dom.byId("clearRoutesBtn"), "click", clearRoutes);
-
-
 
         //Begins listening for click events to add stops
         function addStops() {
@@ -213,15 +209,13 @@
         }
         window.getPointsInRect = getPointsInRect;
 
-        // Add barrier from json
+        // Add barrier from point
         function addPointAsBarrier(point) {
-          // var point = new Point(p.longitude, p.latitude);
           routeParams.barriers.features.push(
             map.graphics.add(
               new Graphic(point, barrierSymbol)
             )
           );
-          console.log(point);
         }
 
         //Stops listening for click events to add barriers and stops (if they've already been wired)
@@ -237,6 +231,7 @@
         //Solves the routes. Any errors will trigger the errorHandler function.
         function solveRoute() {
           removeEventHandlers();
+          getPointsInRect(window.endpoints[0], window.endpoints[1]);
           routeTask.solve(routeParams);
         }
 
@@ -296,15 +291,13 @@
         <button id="clearRoutesBtn">Clear Routes</button>
 
       </div>
-      <form role="search" class="navbar-form navbar-left">
         <div class="form-group">
           <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
           <input id="search2" type="text" class="form-control flat" placeholder="Choose destination...">
         </div>
-        <button class="btn btn-hg btn-primary btn-embossed">
+        <button id="searchButton" class="btn btn-hg btn-primary btn-embossed">
           Search
         </button>
-      </form>
     </div>
     <div id="map"></div>
   </body>
