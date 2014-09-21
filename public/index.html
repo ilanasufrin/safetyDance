@@ -52,7 +52,7 @@
         Color, array, on, dom, xhr, registry
       ) {
         var map, routeTask, routeParams, routes = [];
-        var stopSymbol, barrierSymbol, routeSymbols;
+        var stopSymbol, barrierSymbol, routeSymbols, warningSymbol;
         var mapOnClick_addStops_connect, mapOnClick_addBarriers_connect;
 
         esri.config.defaults.io.corsEnabledServers.push("route.arcgis.com");
@@ -103,9 +103,10 @@
           addPointAsStop(point);
           var symbol = new SimpleMarkerSymbol()
             .setStyle("circle")
-            .setColor(new Color([66, 199, 173,0.9]));
+            .setOutline(0)
+            .setColor(new Color([66, 199, 173, 1]));
           var graphic = new Graphic(point, symbol);
-          map.graphics.add(graphic);
+          // map.graphics.add(graphic);
 
           map.infoWindow.setTitle("Search Result");
           map.infoWindow.setContent(evt.result.name);
@@ -121,11 +122,36 @@
         routeTask.on("solve-complete", showRoute);
         routeTask.on("error", errorHandler);
 
-        stopSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_CROSS).setSize(15);
+        stopSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            // .setColor(new Color([46, 204, 113, 1]));
+            .setColor(new Color([70, 201, 175, 1]));
+
+
         stopSymbol.outline.setWidth(3);
 
-        barrierSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_X).setSize(10);
-        barrierSymbol.outline.setWidth(3).setColor(new Color([255,0,0]));
+
+        warningSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            // .setColor(new Color([46, 204, 113, 1]));
+            .setColor(new Color([244, 210, 19, 1]));
+
+
+        warningSymbol.outline.setWidth(3);
+
+        // barrierSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_X).setSize(10);
+
+        barrierSymbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setSize(14)
+            .setOutline(0)
+            .setColor(new Color([231, 76, 60, 1]));
+
+        barrierSymbol.outline.setWidth(3);
 
         routeSymbols = {
           "Route 1": new SimpleLineSymbol().setColor(new Color([0,0,255,0.5])).setWidth(5),
@@ -279,7 +305,7 @@
   </head>
   <body class="claro">
     <div class="userInput">
-      <div class="">
+      <div class="hide">
         Select route name:
         <select id="routeName">
         <option value="Route 1">Route 1</option>
@@ -294,15 +320,14 @@
         <button id="clearRoutesBtn">Clear Routes</button>
 
       </div>
-      <form role="search" class="navbar-form navbar-left">
-        <div class="form-group">
-          <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
-          <input id="search2" type="text" class="form-control flat" placeholder="Choose destination...">
-        </div>
-        <button class="btn btn-hg btn-primary btn-embossed">
-          Search
-        </button>
-      </form>
+      <div class="form-group">
+        <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
+        <input id="search2" type="text" class="form-control flat" placeholder="Choose destination..."><!-- 
+        <input id="" type="text" class="form-control flat" placeholder="Choose destination..."> -->
+      </div>
+      <button id="searchButton" class="btn btn-hg btn-primary btn-embossed">
+        Search
+      </button>
     </div>
     <div id="map"></div>
   </body>
