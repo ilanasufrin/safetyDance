@@ -39,6 +39,7 @@
         "dojo/_base/array",
         "dojo/on",
         "dojo/dom",
+        "dojo/dom-class",
         "dojo/request/xhr",
         "dijit/registry",
 
@@ -49,7 +50,7 @@
       ], function (
         urlUtils, esriConfig, Map, Geocoder, Point, Graphic, RouteTask, RouteParameters,
         FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
-        Color, array, on, dom, xhr, registry
+        Color, array, on, dom, domClass, xhr, registry
       ) {
         var map, routeTask, routeParams, routes = [];
         var stopSymbol, barrierSymbol, routeSymbols, warningSymbol;
@@ -59,10 +60,45 @@
 
         map = new Map("map", {
           basemap: "streets",
-          // center: [-73.935242, 40.730610],
-          center: [-73.9910079091617, 40.5752481881493],
-          zoom: 15
+          center: [-73.95, 40.75],
+          zoom: 12
         });
+
+        var emailField = dom.byId('emailField'),
+            emailWrapper = dom.byId('emailWrapper');
+        function showEmailWrapper() {
+          domClass.remove(emailWrapper, "hide");
+        }
+        function hideEmailWrapper() {
+          domClass.add(emailWrapper, "hide");
+        }
+
+        function sendSubscription(email, p1, p2) {
+          var formData = {
+            email: email,
+            "p1[latitude]": p1.getLatitude(),
+            "p1[longitude]": p2.getLongitude(),
+            "p2[latitude]": p2.getLatitude(),
+            "p2[longitude]": p2.getLongitude()
+          }
+          console.log(formData)
+          xhr("/users", {
+            method: "POST",
+            data: formData
+          }).then(function(data) {
+            hideEmailWrapper();
+          });
+        }
+
+        function subscribe() {
+          sendSubscription(
+            emailField.value,
+            endpointStart,
+            endpointEnd
+          );
+        }
+
+        on(dom.byId("subscribeSubmit"), "click", subscribe);
 
 
         function addPointAsStop(point) {
@@ -236,6 +272,7 @@
             data.forEach(function(p) {
               addPointAsBarrier(new Point(p.longitude, p.latitude));
             });
+            showEmailWrapper();
             cb();
           })
         }
@@ -303,6 +340,11 @@
           routes = [];
         }
 
+        function clearRouteAndMarkers() {
+          clearRoutes();
+          clearBarriers();
+        }
+
         //Draws the resulting routes on the map
         function showRoute(evt) {
           clearRoutes();
@@ -358,9 +400,9 @@
         <button id="searchButton" class="btn btn-hg btn-primary btn-embossed fui-search">
           
         </button>
-        <div class="email-wrapper">
-          <input type="text" class="form-control" placeholder="email address">
-          <button class="btn btn-hg btn-primary btn-embossed fui-volume">
+        <div id="emailWrapper" class="hide email-wrapper">
+          <input id="emailField" type="text" class="form-control" placeholder="email address">
+          <button id="subscribeSubmit" class="btn btn-hg btn-primary btn-embossed fui-volume">
           </button>
         </div>
     </div>
