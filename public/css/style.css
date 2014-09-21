@@ -90,7 +90,20 @@ p.xs span {
 	margin: 0 10px 0 4px;
 	text-transform: none;
 }
+.logo {
+	position: absolute;
+	bottom: 45px;
+	right: 10px;
+	background: url(../i/logo.png) no-repeat center center rgba(255,255,255,0.7);
+	background-size: contain;
+	width: 90px;
+	height: 50px;
+	z-index: 9999;
+}
 @media (max-width: 600px) {
+.logo {
+bottom: 25px;
+}
   .userInput {
   	width: 100%;
   	margin: 0;
