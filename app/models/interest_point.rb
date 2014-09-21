@@ -6,7 +6,8 @@ class InterestPoint < ActiveRecord::Base
   validates :longitude, presence: true
   validates :user_id, presence: true
 
-  def self.around point, delta = 0.0025
+  def self.around point, delta = 0.004
+    # 0.0025
 
     north = point.latitude + delta
     south = point.latitude - delta
