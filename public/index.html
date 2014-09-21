@@ -263,7 +263,7 @@
         function getPointsInRect(p1, p2, cb) {
           p1 = p1 || new Point(-74, 40.55);
           p2 = p2 || new Point(-73.95, 40.6);
-          xhr(["http://localhost:9292/crimes",
+          xhr(["/crimes",
                 p1.getLatitude(),
                 p1.getLongitude(),
                 p2.getLatitude(),
@@ -284,7 +284,7 @@
         function getWarningPointsInRect(p1, p2) {
           p1 = p1 || new Point(-74, 40.55);
           p2 = p2 || new Point(-73.95, 40.6);
-          xhr(["http://localhost:9292/crimes",
+          xhr(["/crimes",
                 p1.getLatitude(),
                 p1.getLongitude(),
                 p2.getLatitude(),
