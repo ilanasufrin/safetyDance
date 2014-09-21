@@ -54,6 +54,8 @@
         var stopSymbol, barrierSymbol, routeSymbols;
         var mapOnClick_addStops_connect, mapOnClick_addBarriers_connect;
 
+        esri.config.defaults.io.corsEnabledServers.push("route.arcgis.com");
+
         map = new Map("map", {
           basemap: "streets",
           // center: [-73.935242, 40.730610],

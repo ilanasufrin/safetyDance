@@ -11,7 +11,7 @@ class CrimesController < ApplicationController
       p1 = {lat: x1.to_f, lng: y1.to_f}
       p2 = {lat: x2.to_f, lng: y2.to_f}
 
-      json Crime.in_rect(p1, p2).sample(10) # Ensparsen the dataset
+      json Crime.srs.in_rect(p1, p2).sample(250) # Ensparsen the dataset
     end
   end
 
