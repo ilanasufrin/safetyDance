@@ -232,7 +232,7 @@
           );
         }
 
-        function getPointsInRect(p1, p2) {
+        function getPointsInRect(p1, p2, cb) {
           p1 = p1 || new Point(-74, 40.55);
           p2 = p2 || new Point(-73.95, 40.6);
           xhr(["http://walk.ngrok.com/crimes",
@@ -245,6 +245,7 @@
             data.forEach(function(p) {
               addPointAsBarrier(new Point(p.longitude, p.latitude));
             });
+            cb();
           })
         }
         window.getPointsInRect = getPointsInRect;
@@ -295,9 +296,12 @@
         //Solves the routes. Any errors will trigger the errorHandler function.
         function solveRoute() {
           removeEventHandlers();
-          getPointsInRect(endpointStart, endpointEnd);
+          getPointsInRect(endpointStart, endpointEnd, function() {
+            console.info("Routes. Yeah.");
+            console.log(routeParams.barriers.features);
+            routeTask.solve(routeParams);
+          });
           getWarningPointsInRect(endpointStart, endpointEnd);
-          routeTask.solve(routeParams);
         }
 
         //Clears all routes
