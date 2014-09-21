@@ -326,6 +326,7 @@
         //Solves the routes. Any errors will trigger the errorHandler function.
         function solveRoute() {
           removeEventHandlers();
+          clearRouteAndMarkers();
           getPointsInRect(endpointStart, endpointEnd, function() {
             console.info("Routes. Yeah.");
             console.log(routeParams.barriers.features);
