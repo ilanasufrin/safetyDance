@@ -126,19 +126,12 @@
             // .setColor(new Color([46, 204, 113, 1]));
             .setColor(new Color([70, 201, 175, 1]));
 
-
-        stopSymbol.outline.setWidth(3);
-
-
         warningSymbol = new SimpleMarkerSymbol()
             .setStyle("circle")
             .setSize(14)
             .setOutline(0)
             // .setColor(new Color([46, 204, 113, 1]));
             .setColor(new Color([244, 210, 19, 1]));
-
-
-        warningSymbol.outline.setWidth(3);
 
         // barrierSymbol = new SimpleMarkerSymbol().setStyle(SimpleMarkerSymbol.STYLE_X).setSize(10);
 
@@ -147,8 +140,6 @@
             .setSize(14)
             .setOutline(0)
             .setColor(new Color([231, 76, 60, 1]));
-
-        barrierSymbol.outline.setWidth(3);
 
         routeSymbols = {
           "Route 1": new SimpleLineSymbol().setColor(new Color([0,0,255,0.5])).setWidth(5),
@@ -346,9 +337,14 @@
           <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
           <input id="search2" type="text" class="form-control flat" placeholder="Choose destination...">
         </div>
-        <button id="searchButton" class="btn btn-hg btn-primary btn-embossed">
-          Search
+        <button id="searchButton" class="btn btn-hg btn-primary btn-embossed fui-search">
+          
         </button>
+        <div class="email-wrapper">
+          <input type="text" class="form-control" placeholder="email address">
+          <button class="btn btn-hg btn-primary btn-embossed fui-volume">
+          </button>
+        </div>
     </div>
     <div id="map"></div>
   </body>
