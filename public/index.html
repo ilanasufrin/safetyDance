@@ -25,6 +25,7 @@
         "esri/urlUtils",
         "esri/config",
         "esri/map",
+        "esri/dijit/Geocoder",
         "esri/geometry/Point",
         "esri/graphic",
         "esri/tasks/RouteTask",
@@ -46,7 +47,7 @@
         "dijit/form/HorizontalSlider",
         "dijit/form/HorizontalRuleLabels"
       ], function (
-        urlUtils, esriConfig, Map, Point, Graphic, RouteTask, RouteParameters,
+        urlUtils, esriConfig, Map, Geocoder, Point, Graphic, RouteTask, RouteParameters,
         FeatureSet, SimpleMarkerSymbol, SimpleLineSymbol,
         Color, array, on, dom, xhr, registry
       ) {
@@ -60,6 +61,54 @@
           center: [-73.9910079091617, 40.5752481881493],
           zoom: 15
         });
+
+
+        function addPointAsStop(point) {
+          // var point = new Point(p.longitude, p.latitude);
+          console.log(dom.byId("routeName").value);
+          routeParams.stops.features.push(
+            map.graphics.add(
+              new Graphic(point, stopSymbol,
+                // { RouteName:dom.byId("routeName").value }
+                { RouteName:'Route' }
+              )
+            )
+          );
+          console.log(point);
+        }
+
+        var geocoder1 = new Geocoder({
+          autoComplete: true,
+          map: map,
+        }, dom.byId("search1"));
+        geocoder1.startup();
+
+        geocoder1.on("select", showLocation);
+
+        var geocoder2 = new Geocoder({
+          autoComplete: true,
+          map: map,
+        }, dom.byId("search2"));
+        geocoder2.startup();
+
+        geocoder2.on("select", showLocation);
+
+        function showLocation(evt) {
+          // map.graphics.clear();
+          var point = evt.result.feature.geometry;
+          console.log(point.getLatitude(), point.getLongitude());
+          // addPointAsStop(point.getLatitude(), point.getLongitude());
+          addPointAsStop(point);
+          var symbol = new SimpleMarkerSymbol()
+            .setStyle("circle")
+            .setColor(new Color([66, 199, 173,0.9]));
+          var graphic = new Graphic(point, symbol);
+          map.graphics.add(graphic);
+
+          map.infoWindow.setTitle("Search Result");
+          map.infoWindow.setContent(evt.result.name);
+          map.infoWindow.show(evt.result.feature.geometry);
+        };
 
         routeTask = new RouteTask("http://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World");
         routeParams = new RouteParameters();
@@ -89,6 +138,8 @@
         on(dom.byId("clearBarriersBtn"), "click", clearBarriers);
         on(dom.byId("solveRoutesBtn"), "click", solveRoute);
         on(dom.byId("clearRoutesBtn"), "click", clearRoutes);
+
+
 
         //Begins listening for click events to add stops
         function addStops() {
@@ -133,16 +184,14 @@
 
         //Adds a barrier
         function addBarrier(evt) {
-          var xx = new esri.Graphic(
-            evt.mapPoint,
-            barrierSymbol
-          )
           routeParams.barriers.features.push(
             map.graphics.add(
-              xx
+              new esri.Graphic(
+                evt.mapPoint,
+                barrierSymbol
+              )
             )
           );
-          console.log(xx);
         }
 
         function getPointsInRect(p1, p2) {
@@ -150,24 +199,25 @@
               y1 = -74,
               x2 = 40.6,
               y2 = -73.95;
-          xhr(["/crimes", x1, y1, x2, y2].join('/'), {
+          xhr(["http://walk.ngrok.com/crimes", x1, y1, x2, y2].join('/'), {
             handleAs: "json"
           }).then(function(data){
-            data.forEach(function(pt) {
-              addPointAsBarrier(pt);
+            data.forEach(function(p) {
+              addPointAsBarrier(new Point(p.longitude, p.latitude));
             });
           })
         }
         window.getPointsInRect = getPointsInRect;
 
         // Add barrier from json
-        function addPointAsBarrier(p) {
-          var point = new Point(p.longitude, p.latitude);
+        function addPointAsBarrier(point) {
+          // var point = new Point(p.longitude, p.latitude);
           routeParams.barriers.features.push(
             map.graphics.add(
               new Graphic(point, barrierSymbol)
             )
           );
+          console.log(point);
         }
 
         //Stops listening for click events to add barriers and stops (if they've already been wired)
@@ -227,7 +277,7 @@
   </head>
   <body class="claro">
     <div class="userInput">
-      <div class="hide">
+      <div class="">
         Select route name:
         <select id="routeName">
         <option value="Route 1">Route 1</option>
@@ -244,8 +294,8 @@
       </div>
       <form role="search" class="navbar-form navbar-left">
         <div class="form-group">
-          <input type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
-          <input type="text" class="form-control flat" placeholder="Choose destination...">
+          <input id="search1" type="text" class="form-control flat" placeholder="Choose starting point, or click on the map...">
+          <input id="search2" type="text" class="form-control flat" placeholder="Choose destination...">
         </div>
         <button class="btn btn-hg btn-primary btn-embossed">
           Search
