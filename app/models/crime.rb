@@ -1,6 +1,7 @@
 class Crime < ActiveRecord::Base
 
-  DELTA = 0.005
+  # DELTA = 0.005
+  DELTA = 0.01
 
   scope :srs, -> {
     where(crimeType: ['MURDER', 'RAPE', 'ROBBERY', 'FELONY ASSAULT'])
