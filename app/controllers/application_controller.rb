@@ -2,6 +2,7 @@ class ApplicationController < Sinatra::Base
   helpers Sinatra::Cookies
 
   configure do
+    register Sinatra::ActiveRecordExtension
     register Sinatra::Namespace
   end
 
